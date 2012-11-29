@@ -2,7 +2,7 @@
 
 VERSION := 0.1.0
 
-tempdir        := $(shell mktemp -d)
+tempdir        := $(shell mktemp -d -t log-shuttle.XXXXXXXX)
 controldir     := $(tempdir)/DEBIAN
 installpath    := $(tempdir)/usr/local/bin
 buildpath      := .build
@@ -20,6 +20,16 @@ Description: Move logs from the Dyno to the Logplex.
 endef
 export DEB_CONTROL
 
+.PHONY: deb clean
+
+deb: build
+	mkdir -p -m 0755 $(controldir)
+	echo "$$DEB_CONTROL" > $(controldir)/control
+	mkdir -p $(installpath)
+	install bin/log-shuttle $(installpath)/log-shuttle
+	fakeroot dpkg-deb --build $(tempdir) .
+	rm -rf $(tempdir)
+
 $(buildpackcache):
 	mkdir -p $(buildpath)
 	mkdir -p $(buildpackcache)
@@ -31,14 +41,6 @@ $(buildpackpath)/bin: $(buildpackcache)
 
 build: $(buildpackpath)/bin
 	$(buildpackpath)/bin/compile . $(buildpackcache)
-
-deb: build
-	mkdir -p -m 0755 $(controldir)
-	echo "$$DEB_CONTROL" > $(controldir)/control
-	mkdir -p $(installpath)
-	install bin/log-shuttle $(installpath)/log-shuttle
-	fakeroot dpkg-deb --build $(tempdir) .
-	rm -rf $(tempdir)
 
 clean:
 	rm -rf $(buildpath)
