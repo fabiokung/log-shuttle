@@ -143,7 +143,7 @@ func main() {
 	if len(*socket) == 0 {
 		read(os.Stdin, lines, &drops, &reads)
 	} else {
-		l, err := net.Listen("unix", *socket)
+		l, err := net.Listen("unixgram", *socket)
 		if err != nil {
 			log.Fatal(err)
 		}
